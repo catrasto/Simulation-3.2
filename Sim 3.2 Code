@@ -1,0 +1,88 @@
+import matplotlib.pyplot
+import numpy
+import math
+from scipy.optimize import curve_fit
+
+# lists of data from the problem
+Temp = [50, 100, 150, 200, 273.15, 298.15, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1750, 2000, 2250, 2500, 2750, 3000]
+Cpm = [45.01, 51.23, 55.45, 61.73, 74.89, 80.15, 80.55, 102.73, 123.64, 141.91, 157.66, 171.27, 183.06, 193.30, 202.18, 209.90, 216.59, 222.41, 227.48, 237.55, 244.85, 250.26, 254.33, 257.45, 259.87]
+
+#create arrays from the list of data
+Temp_array = numpy.array(Temp)
+Cpm_array = numpy.array(Cpm)
+
+# the function we'll use to fit our data
+def temp_dep_Cp(temps, a, b, c):
+    return a +b*temps + (c/(temps**2))
+
+# perform the optimization
+params, covars = curve_fit(temp_dep_Cp, Temp_array, Cpm_array)
+
+# harvest the fittable parameter values from the optimization
+a = params[0]
+b = params[1]
+c = params[2]
+
+# create a nice smooth line to represent the fit
+Temps_finefit_array = numpy.linspace(50, 3000, 3000)
+Cpm_finefit_array = temp_dep_Cp(Temps_finefit_array, a, b, c)
+
+# Residuals 1
+temp_Res = []
+for i in Temp_array:
+    Res = a +b*i + (c/(i**2))
+    temp_Res.append(Res)
+
+Res_array = []
+Res_array = numpy.subtract(Cpm_array, temp_Res)
+
+matplotlib.pyplot.scatter(Temp_array, Res_array)
+
+# function to fit the data
+def Shomate_Cp(temps, A, B, C, D, E):
+    return A + B*temps + C*(temps**2) + D*(temps**3) + (E/(temps**2))
+
+paramsSho, covarsSho = curve_fit(Shomate_Cp, Temp_array, Cpm_array)
+
+A = paramsSho[0]
+B = paramsSho[1]
+C = paramsSho[2]
+D = paramsSho[3]
+E = paramsSho[4]
+
+# Shomate Experimental
+Sho_Cp = []
+for i in Temp_array:
+    ShCp = A + B*i + C*(i**2) + D*(i**3) + (E/(i**2))
+    Sho_Cp.append(ShCp)
+
+matplotlib.pyplot.scatter(Temp_array, Sho_Cp)
+
+#create a nice smooth line to represent shomate fit
+Temps_Sho_finefit_array = numpy.linspace(25, 3000, 3000)
+Sho_finefit_array = Shomate_Cp(Temps_Sho_finefit_array, A, B, C, D, E)
+
+matplotlib.pyplot.plot(Temps_Sho_finefit_array, Sho_finefit_array)
+
+# Shomate Residuals
+Sho_Res_array = []
+Sho_Res_array = numpy.subtract(Cpm_array, Sho_Cp)
+
+matplotlib.pyplot.scatter(Temp_array, Sho_Res_array)
+
+# plot both the data (as points) and the fit (as a nice smooth line)
+matplotlib.pyplot.scatter(Temp_array, Cpm_array)
+matplotlib.pyplot.plot(Temps_finefit_array, Cpm_finefit_array)
+matplotlib.pyplot.show()
+
+# print the values of the fitted parameters
+print("a = %.2f" % a)
+print("b = %.6f" % b)
+print("c = %.0f" % c)
+
+#print the values of the fitted parameters for Shomate
+print("A = %.2f" % A)
+print("B = %.2f" % B)
+print("C = %.6f" % C)
+print("D = %.8f" % D)
+print("E = %.2f" % E)
